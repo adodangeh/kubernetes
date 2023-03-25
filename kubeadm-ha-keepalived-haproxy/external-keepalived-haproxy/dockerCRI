@@ -1,0 +1,115 @@
+systemctl status docker
+swapoff -a; sed -i '/swap/d' /etc/fstab
+sudo apt update
+pwd
+
+
+VER=$(curl -s https://api.github.com/repos/Mirantis/cri-dockerd/releases/latest|grep tag_name | cut -d '"' -f 4|sed 's/v//g')
+echo $VER
+
+wget https://github.com/Mirantis/cri-dockerd/releases/download/v${VER}/cri-dockerd-${VER}.amd64.tgz
+tar xvf cri-dockerd-${VER}.amd64.tgz
+
+sudo mv cri-dockerd/cri-dockerd /usr/local/bin/
+
+cri-dockerd --version
+
+
+wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.service
+wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.socket
+sudo mv cri-docker.socket cri-docker.service /etc/systemd/system/
+sudo sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
+
+
+sudo systemctl daemon-reload
+sudo systemctl enable cri-docker.service
+sudo systemctl enable --now cri-docker.socket
+
+
+systemctl status cri-docker.socket
+
+---------------------------------------------
+
+
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+
+
+apt-
+
+
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+-------------------------------------------------
+kubectl taint nodes node1 key1=value1:NoSchedule-
+
+kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+kubectl taint nodes --all node-role.kubernetes.io/master-
+How to set cgroup drive on docker?
+----------------------------------
+docker info
+open docker service file:
+/usr/lib/systemd/system/docker.service
+
+add bellow property at the end of ExecStart==
+--exec-opt native.cgroupdriver=systemd
+
+systemctl daemon-reload
+systemctl restart docker
+
+
+The Container Runtime Interface (CRI) is the main protocol for the communication between the kubelet and Container Runtime.
+-------------------------------------------------
+
+systemctl status docker
+      kubeadm config images list
+ sudo kubeadm config images pull --cri-socket /run/cri-dockerd.sock 
+
+sudo kubeadm init --control-plane-endpoint=10.102.2.200:6443 --apiserver-advertise-address=10.102.2.202 --pod-network-cidr=10.96.0.0/16  --cri-socket /run/cri-dockerd.sock
+  kubeadm join 192.168.1.198:6443 --token ecazq3.6pazimzeaim97vrb --discovery-token-ca-cert-hash sha256:b488facdfd411e8b731f3ef2a7f40e3ce5133bccd8be129c3356b306a537e189
+
+____________
+
+
+
+sudo kubeadm init --apiserver-advertise-address=192.168.1.102 --pod-network-cidr=10.96.0.0/16  --upload-certs   --cri-socket /run/cri-dockerd.sock
+
+print join command:
+
+
+
+
+--cri-socket /run/cri-dockerd.sock
+
+
+
+
+
+kubeadm join 10.102.2.200:6443 --token t09efq.3bf00k0vh0um8azr \
+        --discovery-token-ca-cert-hash sha256:7fb818ae9949478f707597ef1e45ddcdb2010a9c63312f608540980da035c5ed \
+        --control-plane --certificate-key c3bdaf4bbaaef5c0ac1af1496cff8a2eb6f827cb063b8c9e2b569035228caf34 --apiserver-advertise-address=10.102.2.202 --cri-socket /run/cri-dockerd.sock 
+
+Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
+As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
+"kubeadm init phase upload-certs --upload-certs" to reload certs afterward.
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 10.102.2.200:6443 --token t09efq.3bf00k0vh0um8azr \
+        --discovery-token-ca-cert-hash sha256:7fb818ae9949478f707597ef1e45ddcdb2010a9c63312f608540980da035c5ed
+
+
+
+
+
+
+
+
+
+
+
